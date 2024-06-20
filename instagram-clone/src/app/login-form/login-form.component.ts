@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+
+declare var bootstrap: any;
 
 @Component({
   selector: 'app-login-form',
@@ -14,7 +16,7 @@ export class LoginFormComponent implements OnInit {
   loginForm!: FormGroup;
   usuarios: any[] = [];
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private router: Router, private el: ElementRef) {
     if (typeof localStorage !== 'undefined') {
       const usuariosGuardados = localStorage.getItem('usuarios');
       this.usuarios = usuariosGuardados ? JSON.parse(usuariosGuardados) : [];
@@ -32,11 +34,11 @@ export class LoginFormComponent implements OnInit {
     console.log('Intentando iniciar sesión:', { emailOrUsername, password });
     const usuario = this.usuarios.find(user => (user.email === emailOrUsername || user.username === emailOrUsername) && user.password === password);
     if (usuario) {
-      alert('Inicio de sesión exitoso.');
+      this.showToast('Inicio de sesión exitoso.', 'success');
       console.log('Inicio de sesión exitoso:', usuario);
       return true;
     } else {
-      alert('Email/Usuario o contraseña incorrectos.');
+      this.showToast('Email/Usuario o contraseña incorrectos.', 'danger');
       console.log('Email/Usuario o contraseña incorrectos.');
       return false;
     }
@@ -44,11 +46,57 @@ export class LoginFormComponent implements OnInit {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      const { emailOrUsername, password } = this.loginForm.value;
-      const inicioExitoso = this.iniciarSesion(emailOrUsername, password);
-      if (inicioExitoso) {
-        this.loginForm.reset();
+      const emailOrUsernameControl = this.loginForm.get('emailOrUsername');
+      const passwordControl = this.loginForm.get('password');
+      
+      if (emailOrUsernameControl && passwordControl) {
+        const emailOrUsername = emailOrUsernameControl.value;
+        const password = passwordControl.value;
+
+        console.log('Form Values:', { emailOrUsername, password });
+
+        const inicioExitoso = this.iniciarSesion(emailOrUsername, password);
+        if (inicioExitoso) {
+          this.loginForm.reset();
+        }
+      } else {
+        console.error('Form controls are missing');
+        this.showToast('Formulario no válido.', 'danger');
       }
+    } else {
+      this.showToast('Formulario no válido.', 'danger');
     }
+  }
+
+  navigateToRegister() {
+    this.router.navigateByUrl('/register').then(() => {
+      window.location.reload();
+    });
+  }
+
+  showToast(message: string, type: 'success' | 'danger') {
+    const toastContainer = this.el.nativeElement.querySelector('#toast-container');
+    const toastElement = document.createElement('div');
+    toastElement.className = `toast align-items-center text-bg-${type} border-0`;
+    toastElement.role = 'alert';
+    toastElement.ariaLive = 'assertive';
+    toastElement.ariaAtomic = 'true';
+    toastElement.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">
+          ${message}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    `;
+    toastContainer.appendChild(toastElement);
+
+    const toastBootstrap = new bootstrap.Toast(toastElement);
+    toastBootstrap.show();
+
+    setTimeout(() => {
+      toastBootstrap.hide();
+      toastElement.remove();
+    }, 3000);
   }
 }

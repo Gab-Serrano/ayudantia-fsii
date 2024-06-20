@@ -1,39 +1,20 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Manejar el formulario de registro
-  const formRegister = document.querySelector('.needs-validation');
-  formRegister.addEventListener('submit', function(event) {
-    event.preventDefault();
-    event.stopPropagation();
+  const form = document.getElementById('yourFormId'); // Replace with your actual form ID
+  if (form) {
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const emailOrUsername = form.querySelector('[name="emailOrUsername"]').value;
+      const password = form.querySelector('[name="password"]').value;
+      // Add further form handling logic here
 
-    const email = document.querySelector('#email').value;
-    const name = document.querySelector('#name').value;
-    const password = document.querySelector('#pwd').value;
-    const repeatPassword = document.querySelector('#repeat-pwd').value;
-    const username = document.querySelector('#username').value;
-    const birthdate = document.querySelector('#date').value;
-
-    console.log('Formulario de registro enviado:', { email, name, password, repeatPassword, username, birthdate });
-
-    const isValid = formRegister.checkValidity();
-    formRegister.classList.add('was-validated');
-
-    if (!isValid) {
-      return;
-    }
-
-    if (password !== repeatPassword) {
-      alert('Las contraseñas no coinciden.');
-      console.log('Las contraseñas no coinciden.');
-      return;
-    }
-
-    const registroExitoso = window.registrarUsuario(email, name, password, username, birthdate);
-    if (registroExitoso) {
-      console.log('Registro exitoso:', { email, name, password, username, birthdate });
-      formRegister.reset();
-      formRegister.classList.remove('was-validated');
-    } else {
-      console.log('El usuario ya existe.');
-    }
-  }, false);
+      if (emailOrUsername && password) {
+        // Process the form submission
+        console.log('Form submitted:', { emailOrUsername, password });
+      } else {
+        console.error('Form fields are missing');
+      }
+    });
+  } else {
+    console.error('Form not found');
+  }
 });
